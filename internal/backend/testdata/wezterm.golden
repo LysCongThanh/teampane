@@ -1,0 +1,8 @@
+wezterm cli split-pane --pane-id 8 --right --percent 70 --cwd /work/repo -- /usr/bin/teampane pane-host --pane %2 -- cat
+wezterm cli activate-pane --pane-id 8
+wezterm cli split-pane --pane-id 9 --bottom -- /usr/bin/teampane pane-host --pane %2 -- cat
+wezterm cli send-text --pane-id 9 --no-paste <<< "echo hi\r"
+wezterm cli get-text --pane-id 9
+wezterm cli get-text --pane-id 9 --start-line -10000
+wezterm cli activate-pane --pane-id 8
+wezterm cli kill-pane --pane-id 9

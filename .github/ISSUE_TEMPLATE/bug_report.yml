@@ -1,0 +1,35 @@
+name: Bug report
+description: teampane did something wrong
+labels: [bug]
+body:
+  - type: dropdown
+    id: backend
+    attributes:
+      label: Backend
+      options: [kitty, WezTerm, zellij, other]
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: "`teampane version`, `claude --version`, terminal version, OS"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: "`teampane doctor` output"
+      render: text
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant lines of `$XDG_STATE_HOME/teampane/unknown.log` / `debug.log` (run with `TEAMPANE_DEBUG=1`). Remove anything private.
+      render: text

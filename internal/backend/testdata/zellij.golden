@@ -1,0 +1,8 @@
+ZELLIJ_PANE_ID=8 zellij action new-pane --direction right --close-on-exit --near-current-pane --no-focus --cwd /work/repo -- /usr/bin/teampane pane-host --pane %2 -- cat
+ZELLIJ_PANE_ID=9 zellij action new-pane --direction down --close-on-exit --near-current-pane --name tester -- /usr/bin/teampane pane-host --pane %2 -- cat
+zellij action write-chars --pane-id 9 -- "echo hi\r"
+zellij action dump-screen --pane-id 9
+zellij action dump-screen --pane-id 9 --full
+zellij action rename-pane --pane-id 9 -- researcher
+zellij action focus-pane-id 8
+zellij action close-pane --pane-id 9

@@ -1,0 +1,4 @@
+/teampane
+/dist/
+*.test
+*.out

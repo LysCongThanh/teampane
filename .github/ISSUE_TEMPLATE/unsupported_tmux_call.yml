@@ -1,0 +1,18 @@
+name: Unsupported tmux call
+description: Claude Code (or another tool) ran a tmux command teampane does not handle
+labels: [protocol]
+body:
+  - type: input
+    id: claude
+    attributes:
+      label: "`claude --version`"
+    validations:
+      required: true
+  - type: textarea
+    id: unknown
+    attributes:
+      label: unknown.log lines
+      description: From `$XDG_STATE_HOME/teampane/unknown.log` (default `~/.local/state/teampane/unknown.log`).
+      render: text
+    validations:
+      required: true

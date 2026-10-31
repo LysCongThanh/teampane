@@ -1,0 +1,23 @@
+name: New backend request
+description: Ask for (or offer to write) support for another terminal
+labels: [backend]
+body:
+  - type: input
+    id: terminal
+    attributes:
+      label: Terminal / multiplexer
+    validations:
+      required: true
+  - type: textarea
+    id: api
+    attributes:
+      label: Scriptable API
+      description: How can a program split a pane, send text, read text and close a pane? Link the docs.
+    validations:
+      required: true
+  - type: checkboxes
+    id: help
+    attributes:
+      label: Contribution
+      options:
+        - label: I can open a PR following CONTRIBUTING.md

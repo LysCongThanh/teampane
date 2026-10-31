@@ -1,0 +1,8 @@
+kitty @ --to unix:/tmp/kitty-1 launch --type=window --location=vsplit --match window_id:8 --next-to id:8 --keep-focus --bias=70 --cwd=/work/repo -- /usr/bin/teampane pane-host --pane %2 -- cat
+kitty @ --to unix:/tmp/kitty-1 launch --type=window --location=hsplit --match window_id:9 --next-to id:9 --title=tester -- /usr/bin/teampane pane-host --pane %2 -- cat
+kitty @ --to unix:/tmp/kitty-1 send-text --match id:9 --stdin <<< "echo hi\r"
+kitty @ --to unix:/tmp/kitty-1 get-text --match id:9 --extent=screen
+kitty @ --to unix:/tmp/kitty-1 get-text --match id:9 --extent=all
+kitty @ --to unix:/tmp/kitty-1 set-window-title --match id:9 -- researcher
+kitty @ --to unix:/tmp/kitty-1 focus-window --match id:8
+kitty @ --to unix:/tmp/kitty-1 close-window --match id:9 --ignore-no-match
