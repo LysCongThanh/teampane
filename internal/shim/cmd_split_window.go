@@ -119,7 +119,7 @@ func (c *Ctx) printPane(id, f string) int {
 	}
 	out, missing := format.Expand(f, c.paneVars(st, p))
 	if len(missing) > 0 {
-		return c.unsupported("unsupported format variables " + join(missing))
+		logUnknown(c.Raw, "unknown format variables expanded empty: "+join(missing))
 	}
 	fmt.Fprintln(c.Out, out)
 	return 0

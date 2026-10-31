@@ -80,13 +80,20 @@ func TestUnknownCommandsFailSafely(t *testing.T) {
 	e.activate()
 	for _, args := range [][]string{
 		{"pipe-pane", "-o", "cat"},
-		{"display-message", "-p", "#{pane_width}"},
 		{"capture-pane", "-t", "%1"},
 		{},
 	} {
 		if _, code := e.tmux(args...); code != 1 {
 			t.Fatalf("tmux %v exit = %d, want 1", args, code)
 		}
+	}
+	// Like real tmux, an unknown format variable expands to "" (exit 0) but is
+	// still logged. Claude Code 2.1.316 probes several of these at startup.
+	if out, code := e.tmux("display-message", "-p", "[#{pane_width}]"); code != 0 || strings.TrimSpace(out) != "[]" {
+		t.Fatalf("display-message unknown var = %q %d, want [] 0", out, code)
+	}
+	if out, _ := e.tmux("display-message", "-p", "#{allow-passthrough}|#{status}"); strings.TrimSpace(out) != "off|off" {
+		t.Fatalf("feature probe = %q, want off|off", out)
 	}
 	data, err := os.ReadFile(filepath.Join(e.root, "state", "teampane", "unknown.log"))
 	if err != nil || !strings.Contains(string(data), "pipe-pane") || !strings.Contains(string(data), "pane_width") {

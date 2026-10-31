@@ -86,6 +86,15 @@ func (c *Ctx) paneVars(st *registry.State, p *registry.Pane) map[string]string {
 		"host":                host,
 		"pid":                 strconv.Itoa(os.Getpid()),
 		"version":             "3.4",
+		// Terminal-feature options Claude Code probes at startup. Answer what
+		// is true for the shim: there is no status line, and escape sequences
+		// cannot be passed through a fake tmux, so passthrough is off.
+		"client_termtype":   c.Getenv("TERM"),
+		"allow-passthrough": "off",
+		"focus-events":      "on",
+		"status":            "off",
+		"status-position":   "bottom",
+		"window_bigger":     "0",
 	}
 	if p.HostPID > 0 {
 		v["pane_pid"] = strconv.Itoa(p.HostPID)

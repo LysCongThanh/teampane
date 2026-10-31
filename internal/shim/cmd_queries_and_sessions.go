@@ -9,14 +9,14 @@ import (
 	"github.com/LysCongThanh/teampane/internal/tmuxargs"
 )
 
-// emit expands f for each pane and prints one line per pane. Unknown
-// variables fail the whole command (and are logged) rather than lie.
+// emit expands f for each pane and prints one line per pane. Like real tmux,
+// unknown variables expand to "" (they are logged so we can add them).
 func (c *Ctx) emit(st *registry.State, panes []*registry.Pane, f string) int {
 	var b strings.Builder
 	for _, p := range panes {
 		out, missing := format.Expand(f, c.paneVars(st, p))
 		if len(missing) > 0 {
-			return c.unsupported("unsupported format variables " + join(missing))
+			logUnknown(c.Raw, "unknown format variables expanded empty: "+join(missing))
 		}
 		b.WriteString(out + "\n")
 	}
