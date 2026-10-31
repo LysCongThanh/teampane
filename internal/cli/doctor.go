@@ -84,7 +84,7 @@ func claudeBinaryFinding() backend.Finding {
 	if version == "" {
 		version = "version unknown"
 	}
-	if i := strings.IndexByte(version, '\\n'); i >= 0 {
+	if i := strings.IndexByte(version, '\n'); i >= 0 {
 		version = strings.TrimSpace(version[:i])
 	}
 	return backend.Finding{OK: true, Msg: fmt.Sprintf("claude %s at %s", version, path)}
