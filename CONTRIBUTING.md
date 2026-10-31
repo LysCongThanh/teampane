@@ -7,7 +7,7 @@ Thanks for helping. Small, focused PRs are easiest to review.
 - Go files stay under ~200 lines, `snake_case.go` names, a comment on every exported identifier.
 - Real tests only: unit tests for pure code, golden command lines for backends, and the end-to-end suite in
   `internal/e2e` (it builds the binary and drives it through a `tmux` symlink with the headless backend).
-- `go vet ./...` and `go test ./...` must pass. CI also runs `golangci-lint` (advisory).
+- `go vet ./...`, `gofmt -l .` (no output) and `go test -race ./...` must pass; CI runs the same.
 - Never send anything to a terminal you did not create: tests use the headless backend unless an explicit
   opt-in variable is set.
 
