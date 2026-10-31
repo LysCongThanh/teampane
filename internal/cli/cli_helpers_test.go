@@ -67,3 +67,17 @@ func TestEnsureLinkIdempotent(t *testing.T) {
 		t.Fatalf("isOurLink = %v %v", ours, err)
 	}
 }
+
+func TestVersionPrefersInjectedValue(t *testing.T) {
+	old := Version
+	t.Cleanup(func() { Version = old })
+	Version = "1.2.3"
+	if got := version(); got != "1.2.3" {
+		t.Fatalf("version() = %q, want injected 1.2.3", got)
+	}
+	Version = "dev"
+	// Test binaries carry no module version, so the fallback keeps "dev".
+	if got := version(); got != "dev" {
+		t.Fatalf("version() = %q, want dev", got)
+	}
+}

@@ -6,9 +6,26 @@ Claude Code's [agent teams](https://code.claude.com/docs/en/agent-teams) can giv
 but only through tmux or iTerm2. teampane is a small Go binary that pretends to be `tmux` and turns those calls
 into your terminal's native splits.
 
-![teampane demo](docs/demo.gif)
+![teampane CLI demo: doctor, install, and the shim answering Claude Code's tmux calls](docs/demo.gif)
 
-> GIF placeholder — regenerate with `vhs docs/demo.tape`.
+*CLI demo, recorded with [VHS](https://github.com/charmbracelet/vhs) using the headless backend: `teampane doctor`,
+`teampane install`, then the tmux calls Claude Code makes to spawn a teammate (`split-window` → pane id,
+`list-panes -F`, `display-message -p`, …) typed by hand. It is not a recording of a real agent team in a GUI
+terminal. Regenerate with `vhs docs/demo.tape`.*
+
+## Status
+
+v0.1.0 is an early release. What has actually been verified:
+
+| Platform / terminal | Status |
+|---|---|
+| Linux + **kitty** | tested live (real splits opened, commands delivered, panes closed) |
+| Linux + **WezTerm**, **zellij** | command-level only: the backend's CLI calls are covered by golden tests, not yet exercised in a live session |
+| **macOS** | experimental — builds and unit tests pass, but end-to-end pane readiness fails ([#1](https://github.com/LysCongThanh/teampane/issues/1)) |
+| Full Claude Code agent team | **not yet validated** end to end with a real multi-teammate session; the tmux call sequence is replayed in tests |
+
+If you try it, please [open an issue](https://github.com/LysCongThanh/teampane/issues/new) with your terminal,
+OS and Claude Code version — whether it worked or not — and attach `$XDG_STATE_HOME/teampane/unknown.log` if present.
 
 ## Why
 
@@ -24,7 +41,7 @@ Until terminals get native backends, a shim is the practical way to get there.
 ## Install
 
 ```sh
-go install github.com/LysCongThanh/teampane@latest
+go install github.com/LysCongThanh/teampane@latest   # or grab a binary from Releases
 teampane install      # creates ~/.local/share/teampane/bin/tmux -> teampane (never touches a real tmux)
 teampane doctor       # checks terminal remote control and Claude Code settings
 ```

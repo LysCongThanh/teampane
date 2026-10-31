@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime/debug"
 	"time"
 
 	"github.com/LysCongThanh/teampane/internal/panehost"
@@ -55,7 +56,7 @@ func Main(args []string) int {
 	case "pane-host":
 		return paneHostCmd(args[1:], errw)
 	case "version", "--version", "-v":
-		fmt.Fprintln(out, "teampane", Version)
+		fmt.Fprintln(out, "teampane", version())
 		return 0
 	case "help", "--help", "-h":
 		fmt.Fprint(out, usage)
@@ -63,6 +64,18 @@ func Main(args []string) int {
 	}
 	fmt.Fprintf(errw, "teampane: unknown command %q\n\n%s", args[0], usage)
 	return 2
+}
+
+// version prefers the GoReleaser-injected Version and falls back to the
+// module version recorded by `go install module@vX.Y.Z`.
+func version() string {
+	if Version != "dev" {
+		return Version
+	}
+	if bi, ok := debug.ReadBuildInfo(); ok && bi.Main.Version != "" && bi.Main.Version != "(devel)" {
+		return bi.Main.Version
+	}
+	return Version
 }
 
 // paneHostCmd is the hidden entry point that runs inside each new pane.
