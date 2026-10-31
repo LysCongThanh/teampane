@@ -84,7 +84,9 @@ func runCmd(args []string, errw io.Writer) int {
 	vars, err := activation(os.Getenv, os.Getpid())
 	switch {
 	case errors.Is(err, errRealTmux):
-		// Run unchanged; Claude Code talks to the real tmux.
+		// Run unchanged; Claude Code talks to the real tmux. Say so, so
+		// nobody wonders why teampane's panes do not appear.
+		fmt.Fprintln(errw, "teampane run: inside a real tmux session; running without the shim")
 	case err != nil:
 		fmt.Fprintln(errw, "teampane run:", err)
 		return 1

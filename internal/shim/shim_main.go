@@ -72,6 +72,13 @@ func (c *Ctx) run(args []string) int {
 	if err != nil {
 		return c.unsupported(err.Error())
 	}
+	// Outside a teampane session (no $TMUX, or a real tmux's socket) the
+	// call belongs to a real tmux: never shadow it when one is installed.
+	if !c.inTeampaneSession(g) {
+		if real := findRealTmux(c.Getenv); real != "" {
+			return c.execRealTmux(real, args)
+		}
+	}
 	if g.Version {
 		fmt.Fprintln(c.Out, FakeVersion)
 		return 0
@@ -121,15 +128,18 @@ func (c *Ctx) open(socket string) error {
 // housekeep adopts the caller's pane if the registry lost it and prunes
 // panes whose host process died (e.g. a teammate that exited by itself).
 func (c *Ctx) housekeep(st *registry.State) error {
-	if cur := c.Getenv("TMUX_PANE"); cur != "" && st.Find(cur) == nil {
+	native := c.B.CurrentPane()
+	// Adopt only if no entry already owns this native pane; a duplicate
+	// leader entry could otherwise alias a teammate's native id.
+	if cur := c.Getenv("TMUX_PANE"); cur != "" && st.Find(cur) == nil && st.FindNative(native) == nil {
 		if k, err := panehost.Key(cur); err == nil {
-			st.Panes = append(st.Panes, &registry.Pane{ID: cur, Native: c.B.CurrentPane(), Window: "@" + k, Leader: true, Created: c.Now()})
+			st.Panes = append(st.Panes, &registry.Pane{ID: cur, Native: native, Window: "@" + k, Leader: true, Created: c.Now()})
 			if n := atoi(k); n >= st.NextID {
 				st.NextID = n + 1
 			}
 		}
 	}
-	for _, p := range st.Prune(alive, c.Now(), 30*time.Second) {
+	for _, p := range st.Prune(alive, c.Now(), readyTimeout(c)+15*time.Second) {
 		if f, err := panehost.PaneFiles(c.Dir, p.ID); err == nil {
 			f.Cleanup()
 		}

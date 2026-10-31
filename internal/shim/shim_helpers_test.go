@@ -36,7 +36,7 @@ func TestResolveTargets(t *testing.T) {
 			t.Errorf("resolve(%q) = %v %v, want %s", target, got, err, want.ID)
 		}
 	}
-	for _, bad := range []string{"%9", "@7"} {
+	for _, bad := range []string{"%9", "@7", "other-session", "typo:0.1"} {
 		if _, err := c.resolve(st, bad); err == nil {
 			t.Errorf("resolve(%q) should fail", bad)
 		}
@@ -81,5 +81,15 @@ func TestPercentAndSessionArg(t *testing.T) {
 		if got := sessionArg(in); got != want {
 			t.Errorf("sessionArg(%q) = %q", in, got)
 		}
+	}
+}
+
+func TestShellCommandQuotesArgv(t *testing.T) {
+	if got := shellCommand([]string{"cd /x && claude"}); got != "cd /x && claude" {
+		t.Errorf("single arg must stay a shell line, got %q", got)
+	}
+	got := shellCommand([]string{"echo", "a b", "$(id)", "it's"})
+	if want := `exec 'echo' 'a b' '$(id)' 'it'\''s'`; got != want {
+		t.Errorf("shellCommand = %q, want %q", got, want)
 	}
 }

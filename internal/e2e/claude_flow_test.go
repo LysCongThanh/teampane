@@ -127,11 +127,37 @@ func TestParallelSplitsGetDistinctPanes(t *testing.T) {
 // TestNotInsideTeampaneSession checks the shim refuses without activation.
 func TestNotInsideTeampaneSession(t *testing.T) {
 	e := newEnv(t)
+	e.set("PATH", "/nonexistent") // no real tmux to fall back to
 	if _, code := e.run(binary, "tmux", "list-panes"); code != 1 {
 		t.Fatal("shim must fail outside a teampane session")
 	}
 	e.set("TMUX", "/tmp/tmux-1000/default,1,0")
 	if out, code := e.run(binary, "env"); code != 0 || !strings.Contains(out, "real tmux") {
 		t.Fatalf("env inside real tmux = %q %d", out, code)
+	}
+}
+
+// TestRealTmuxIsNotShadowed checks that outside a teampane session (no
+// $TMUX, or a real tmux's $TMUX) calls are handed to the real tmux.
+func TestRealTmuxIsNotShadowed(t *testing.T) {
+	e := newEnv(t)
+	e.activate()
+	realDir := filepath.Join(e.root, "realbin")
+	if err := os.MkdirAll(realDir, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	script := "#!/bin/sh\necho \"real-tmux $*\"\n"
+	if err := os.WriteFile(filepath.Join(realDir, "tmux"), []byte(script), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	shimDir := filepath.Join(e.root, "data", "teampane", "bin")
+	e.set("PATH", shimDir+":"+realDir+":/usr/bin:/bin")
+	e.set("TMUX", "/tmp/tmux-1000/default,1,0")
+	if out := e.mustTmux("list-panes"); out != "real-tmux list-panes" {
+		t.Fatalf("real TMUX: got %q", out)
+	}
+	e.set("TMUX", "")
+	if out := e.mustTmux("-V"); out != "real-tmux -V" {
+		t.Fatalf("no TMUX: got %q", out)
 	}
 }

@@ -92,7 +92,9 @@ func (c *Ctx) split(cmd tmuxargs.Command, dir backend.Direction, title string, o
 		return nil
 	})
 	if err := panehost.WaitReady(files.Ready, readyTimeout(c)); err != nil {
-		_ = c.B.Close(native)
+		if native != "" { // an empty id would make some backends target the focused pane
+			_ = c.B.Close(native)
+		}
 		c.forget(id)
 		return c.fail(fmt.Errorf("pane %s: %w", id, err))
 	}

@@ -70,7 +70,7 @@ func cmdRespawnPane(c *Ctx, cmd tmuxargs.Command) int {
 	if err != nil {
 		return c.fail(err)
 	}
-	line := join(cmd.Args)
+	line := shellCommand(cmd.Args)
 	if strings.TrimSpace(line) == "" {
 		return c.unsupported("respawn-pane without a command is not supported")
 	}
@@ -97,7 +97,7 @@ func cmdKillPane(c *Ctx, cmd tmuxargs.Command) int {
 	if err != nil {
 		return c.fail(err)
 	}
-	if p.Leader {
+	if p.Leader || c.isLeaderNative(p.Native) {
 		return c.fail(fmt.Errorf("refusing to close %s: it is not a pane teampane created", p.ID))
 	}
 	if p.Native != "" {
@@ -143,4 +143,37 @@ func cmdSelectPane(c *Ctx, cmd tmuxargs.Command) int {
 		return c.fail(err)
 	}
 	return 0
+}
+
+// shellCommand mirrors tmux: a single argument is a shell command line;
+// several arguments are an argv, so each is quoted rather than re-split by
+// the shell (joining them with spaces would let arguments inject syntax).
+func shellCommand(args []string) string {
+	if len(args) == 1 {
+		return args[0]
+	}
+	q := make([]string, len(args))
+	for i, a := range args {
+		q[i] = "'" + strings.ReplaceAll(a, "'", `'\''`) + "'"
+	}
+	return "exec " + strings.Join(q, " ")
+}
+
+// isLeaderNative reports whether a native pane id belongs to a leader (a
+// pane the user started). A stale or duplicated registry entry must never
+// make kill-pane close the user's own pane.
+func (c *Ctx) isLeaderNative(native string) bool {
+	if native == "" {
+		return false
+	}
+	st, err := c.Store.Read()
+	if err != nil {
+		return true // cannot prove it is safe: refuse
+	}
+	for _, q := range st.Panes {
+		if q.Leader && q.Native == native {
+			return true
+		}
+	}
+	return false
 }

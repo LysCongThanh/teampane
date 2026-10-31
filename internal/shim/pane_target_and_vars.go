@@ -28,6 +28,12 @@ func (c *Ctx) resolve(st *registry.State, target string) (*registry.Pane, error)
 		}
 		return nil, fmt.Errorf("can't find window: %s", target)
 	}
+	// Any other non-empty target must name a known session; tmux errors on
+	// unknown names, and treating them as "current pane" could make
+	// kill-pane close the caller's own pane.
+	if name := sessionArg(target); name != "" && name != sessionName && !st.HasSession(name) {
+		return nil, fmt.Errorf("can't find pane: %s", target)
+	}
 	if cur := c.Getenv("TMUX_PANE"); cur != "" {
 		if p := st.Find(cur); p != nil {
 			return p, nil
