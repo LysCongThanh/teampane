@@ -2,12 +2,15 @@ package cli
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/LysCongThanh/teampane/internal/backend"
 	"github.com/LysCongThanh/teampane/internal/xdg"
@@ -33,6 +36,7 @@ func doctorCmd(out io.Writer) int {
 		add(b.Check()...)
 	}
 	add(linkFinding())
+	add(claudeBinaryFinding())
 	add(claudeFindings()...)
 	if n := countLines(xdg.UnknownLog()); n > 0 {
 		add(backend.Finding{OK: true, Msg: fmt.Sprintf("%d unsupported tmux call(s) logged in %s — please report them", n, xdg.UnknownLog())})
@@ -61,6 +65,29 @@ func linkFinding() backend.Finding {
 		msg += " (outside `teampane run`, tmux resolves to " + p + ")"
 	}
 	return backend.Finding{OK: true, Msg: msg}
+}
+
+// claudeBinaryFinding checks that Claude Code is installed and reports its version.
+func claudeBinaryFinding() backend.Finding {
+	path, err := exec.LookPath("claude")
+	if err != nil {
+		return backend.Finding{OK: false, Msg: "claude not found on PATH — install with `npm i -g @anthropic-ai/claude-code` or see the Claude Code docs"}
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, path, "--version").Output()
+	if err != nil {
+		return backend.Finding{OK: true, Msg: fmt.Sprintf("claude found at %s (version unknown)", path)}
+	}
+	version := strings.TrimSpace(string(out))
+	if version == "" {
+		version = "version unknown"
+	}
+	if i := strings.IndexByte(version, '\n'); i >= 0 {
+		version = strings.TrimSpace(version[:i])
+	}
+	return backend.Finding{OK: true, Msg: fmt.Sprintf("claude %s at %s", version, path)}
 }
 
 // claudeFindings checks the two Claude Code settings split panes need.
